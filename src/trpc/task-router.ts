@@ -24,8 +24,10 @@ const listInput = z
 
 type Task = z.infer<typeof taskFields> & { id: string; createdAt: string };
 
-// A Map keeps storage simple. Tasks are local to this server process and lost on restart.
-const tasks = new Map<string, Task>();
+const processState = globalThis as typeof globalThis & { nextaskTasks?: Map<string, Task> };
+
+// Separately bundled routes share this process-local store, even when Next.js recompiles them.
+const tasks = (processState.nextaskTasks ??= new Map());
 
 function getTask(id: string) {
   const task = tasks.get(id);
