@@ -43,11 +43,9 @@ export function TaskList({ tasks }: { tasks: Task[] }) {
       </p>
       {tasks.length === 0 ? (
         <div className="task-panel panel-message">
-          <span className="empty-icon" aria-hidden="true">
-            ✓
-          </span>
+          <span className="empty-icon" aria-hidden="true" />
           <h2>No tasks yet</h2>
-          <p>New tasks will appear here.</p>
+          <p>Your tasks will appear here.</p>
         </div>
       ) : (
         <ul className="task-panel task-list" aria-label="Tasks">
