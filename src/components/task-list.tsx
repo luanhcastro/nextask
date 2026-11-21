@@ -3,7 +3,7 @@
 import type { inferRouterOutputs } from '@trpc/server';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { useState, useTransition } from 'react';
+import { useRef, useState, useTransition } from 'react';
 
 import { TaskNotice } from '@/components/task-notice';
 import { trpc } from '@/trpc/client';
@@ -15,6 +15,8 @@ const dateFormat = new Intl.DateTimeFormat('en-US', { dateStyle: 'medium', timeZ
 
 export function TaskList({ tasks, notice }: { tasks: Task[]; notice?: string }) {
   const router = useRouter();
+  const deleteDialog = useRef<HTMLDialogElement>(null);
+  const [taskToDelete, setTaskToDelete] = useState<Task>();
   const [isPending, startTransition] = useTransition();
   const [deletingId, setDeletingId] = useState<string>();
   const [feedback, setFeedback] = useState<{ message: string; error?: boolean } | null>();
@@ -86,7 +88,10 @@ export function TaskList({ tasks, notice }: { tasks: Task[]; notice?: string }) 
                     type="button"
                     aria-label={deleting ? `Deleting ${task.title}` : `Delete ${task.title}`}
                     disabled={isPending}
-                    onClick={() => deleteTask(task)}
+                    onClick={() => {
+                      setTaskToDelete(task);
+                      deleteDialog.current?.showModal();
+                    }}
                   >
                     {deleting ? 'Deleting…' : 'Delete'}
                   </button>
@@ -96,6 +101,30 @@ export function TaskList({ tasks, notice }: { tasks: Task[]; notice?: string }) 
           })}
         </ul>
       )}
+      <dialog
+        ref={deleteDialog}
+        className="task-dialog"
+        aria-labelledby="delete-task-title"
+        aria-describedby="delete-task-description"
+      >
+        <h2 id="delete-task-title">Delete task?</h2>
+        <p id="delete-task-description">“{taskToDelete?.title}” will be permanently deleted.</p>
+        <div className="form-actions">
+          <button className="button" type="button" onClick={() => deleteDialog.current?.close()}>
+            Cancel
+          </button>
+          <button
+            className="button button-danger"
+            type="button"
+            onClick={() => {
+              deleteDialog.current?.close();
+              if (taskToDelete) deleteTask(taskToDelete);
+            }}
+          >
+            Delete task
+          </button>
+        </div>
+      </dialog>
     </>
   );
 }

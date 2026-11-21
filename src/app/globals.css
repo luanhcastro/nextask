@@ -327,6 +327,31 @@ a.button:not(.button-primary):hover {
   margin: 0;
 }
 
+.task-dialog {
+  width: min(100% - 2rem, 25rem);
+  padding: 1.25rem;
+  border: 1px solid var(--border);
+  border-radius: 0.75rem;
+  background: var(--surface);
+  color: var(--text);
+  box-shadow: 0 12px 36px rgb(0 0 0 / 35%);
+}
+
+.task-dialog::backdrop {
+  background: rgb(0 0 0 / 65%);
+}
+
+.task-dialog h2 {
+  margin: 0;
+  font-size: 1.125rem;
+}
+
+.task-dialog p {
+  margin: 0.5rem 0 1rem;
+  color: var(--muted);
+  overflow-wrap: anywhere;
+}
+
 .form-actions {
   display: flex;
   flex-wrap: wrap;
