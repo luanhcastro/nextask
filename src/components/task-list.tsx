@@ -1,9 +1,11 @@
 'use client';
 
 import type { inferRouterOutputs } from '@trpc/server';
+import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { useState, useTransition } from 'react';
+import { useRef, useState, useTransition } from 'react';
 
+import { TaskNotice } from '@/components/task-notice';
 import { trpc } from '@/trpc/client';
 import type { AppRouter } from '@/trpc/router';
 
@@ -11,37 +13,48 @@ type Task = inferRouterOutputs<AppRouter>['task']['list']['items'][number];
 
 const dateFormat = new Intl.DateTimeFormat('en-US', { dateStyle: 'medium', timeZone: 'UTC' });
 
-export function TaskList({ tasks }: { tasks: Task[] }) {
+export function TaskList({ tasks, notice }: { tasks: Task[]; notice?: string }) {
   const router = useRouter();
+  const deleteDialog = useRef<HTMLDialogElement>(null);
+  const [taskToDelete, setTaskToDelete] = useState<Task>();
   const [isPending, startTransition] = useTransition();
   const [deletingId, setDeletingId] = useState<string>();
-  const [feedback, setFeedback] = useState<{ message: string; error?: boolean }>();
+  const [feedback, setFeedback] = useState<{ message: string; error?: boolean } | null>();
+  const message = feedback === undefined ? notice : feedback?.message;
 
   function deleteTask(task: Task) {
     if (isPending) return;
 
     setDeletingId(task.id);
-    setFeedback(undefined);
+    setFeedback(null);
     startTransition(async () => {
       try {
         await trpc.task.delete.mutate({ id: task.id });
         // Re-read the first page on the server so the next task can fill the gap.
         router.refresh();
-        setFeedback({ message: 'Task deleted.' });
+        setFeedback({ message: 'Task deleted successfully.' });
       } catch {
-        setFeedback({ message: 'Could not delete the task. Try again.', error: true });
+        setFeedback({ message: 'Could not delete the task. Please try again.', error: true });
       }
     });
   }
 
   return (
     <>
-      <p className="feedback" role="status">
-        {isPending ? 'Deleting task…' : feedback?.error ? '' : feedback?.message}
+      <p className="sr-only" role="status">
+        {isPending ? 'Deleting task…' : ''}
       </p>
-      <p className="feedback feedback-error" role="alert">
-        {!isPending && feedback?.error ? feedback.message : ''}
-      </p>
+      {!isPending && message && (
+        <TaskNotice
+          message={message}
+          error={feedback?.error}
+          onDismiss={() => {
+            setFeedback(null);
+            // Clear the save marker so a reload does not bring back the dismissed notice.
+            if (notice) window.history.replaceState(null, '', '/');
+          }}
+        />
+      )}
       {tasks.length === 0 ? (
         <div className="task-panel panel-message">
           <span className="empty-icon" aria-hidden="true" />
@@ -63,20 +76,23 @@ export function TaskList({ tasks }: { tasks: Task[] }) {
                   </time>
                 </div>
                 <div className="task-actions">
-                  <button
+                  <Link
                     className="button"
-                    type="button"
+                    href={`/tasks/${task.id}/edit`}
                     aria-label={`Edit ${task.title}`}
-                    disabled
+                    prefetch={false}
                   >
                     Edit
-                  </button>
+                  </Link>
                   <button
                     className="button button-danger"
                     type="button"
                     aria-label={deleting ? `Deleting ${task.title}` : `Delete ${task.title}`}
                     disabled={isPending}
-                    onClick={() => deleteTask(task)}
+                    onClick={() => {
+                      setTaskToDelete(task);
+                      deleteDialog.current?.showModal();
+                    }}
                   >
                     {deleting ? 'Deleting…' : 'Delete'}
                   </button>
@@ -86,6 +102,30 @@ export function TaskList({ tasks }: { tasks: Task[] }) {
           })}
         </ul>
       )}
+      <dialog
+        ref={deleteDialog}
+        className="task-dialog"
+        aria-labelledby="delete-task-title"
+        aria-describedby="delete-task-description"
+      >
+        <h2 id="delete-task-title">Delete task?</h2>
+        <p id="delete-task-description">“{taskToDelete?.title}” will be permanently deleted.</p>
+        <div className="form-actions">
+          <button className="button" type="button" onClick={() => deleteDialog.current?.close()}>
+            Cancel
+          </button>
+          <button
+            className="button button-danger"
+            type="button"
+            onClick={() => {
+              deleteDialog.current?.close();
+              if (taskToDelete) deleteTask(taskToDelete);
+            }}
+          >
+            Delete task
+          </button>
+        </div>
+      </dialog>
     </>
   );
 }
