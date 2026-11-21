@@ -25,6 +25,7 @@ export function TaskList({ tasks }: { tasks: Task[] }) {
     startTransition(async () => {
       try {
         await trpc.task.delete.mutate({ id: task.id });
+        // Re-read the first page on the server so the next task can fill the gap.
         router.refresh();
         setFeedback({ message: 'Task deleted.' });
       } catch {

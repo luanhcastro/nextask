@@ -4,8 +4,10 @@ import { Suspense } from 'react';
 import { TaskList } from '@/components/task-list';
 import { appRouter } from '@/trpc/router';
 
+// Read the in-memory store on each request so the list stays fresh after mutations.
 export const dynamic = 'force-dynamic';
 
+// Load the first page for the initial HTML and leave delete interactions to TaskList.
 async function Tasks() {
   const { items } = await appRouter.createCaller({}).task.list({ limit: 10 });
   return <TaskList tasks={items} />;
