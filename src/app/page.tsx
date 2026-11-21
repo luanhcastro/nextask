@@ -8,10 +8,10 @@ import { appRouter } from '@/trpc/router';
 // Read the in-memory store on each request so the list stays fresh after mutations.
 export const dynamic = 'force-dynamic';
 
-// Load the first page for the initial HTML and leave delete interactions to TaskList.
+// Include the first page in the initial HTML so pagination can start at its cursor.
 async function Tasks({ notice }: { notice?: string }) {
-  const { items } = await appRouter.createCaller({}).task.list({ limit: 10 });
-  return <TaskList tasks={items} notice={notice} />;
+  const initialPage = await appRouter.createCaller({}).task.list({ limit: 10 });
+  return <TaskList initialPage={initialPage} notice={notice} />;
 }
 
 export default async function Home({

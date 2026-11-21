@@ -44,7 +44,7 @@ function taskCursor({ createdAt, id }: Task) {
 }
 
 export const taskRouter = t.router({
-  list: t.procedure.input(listInput).query(({ input }) => {
+  list: t.procedure.input(listInput).query(({ input }): { items: Task[]; nextCursor?: string } => {
     const { limit = 10, cursor } = input ?? {};
     // Read one extra task to tell whether another page exists.
     const page = [...tasks.values()]
