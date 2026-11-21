@@ -1,6 +1,7 @@
 'use client';
 
 import type { inferRouterOutputs } from '@trpc/server';
+import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useState, useTransition } from 'react';
 
@@ -11,7 +12,7 @@ type Task = inferRouterOutputs<AppRouter>['task']['list']['items'][number];
 
 const dateFormat = new Intl.DateTimeFormat('en-US', { dateStyle: 'medium', timeZone: 'UTC' });
 
-export function TaskList({ tasks }: { tasks: Task[] }) {
+export function TaskList({ tasks, notice }: { tasks: Task[]; notice?: string }) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
   const [deletingId, setDeletingId] = useState<string>();
@@ -37,7 +38,7 @@ export function TaskList({ tasks }: { tasks: Task[] }) {
   return (
     <>
       <p className="feedback" role="status">
-        {isPending ? 'Deleting task…' : feedback?.error ? '' : feedback?.message}
+        {isPending ? 'Deleting task…' : feedback?.error ? '' : (feedback?.message ?? notice)}
       </p>
       <p className="feedback feedback-error" role="alert">
         {!isPending && feedback?.error ? feedback.message : ''}
@@ -63,14 +64,14 @@ export function TaskList({ tasks }: { tasks: Task[] }) {
                   </time>
                 </div>
                 <div className="task-actions">
-                  <button
+                  <Link
                     className="button"
-                    type="button"
+                    href={`/tasks/${task.id}/edit`}
                     aria-label={`Edit ${task.title}`}
-                    disabled
+                    prefetch={false}
                   >
                     Edit
-                  </button>
+                  </Link>
                   <button
                     className="button button-danger"
                     type="button"
