@@ -5,6 +5,7 @@ import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { type FormEvent, useRef, useState } from 'react';
 
+import { TaskNotice } from '@/components/task-notice';
 import { trpc } from '@/trpc/client';
 import type { AppRouter } from '@/trpc/router';
 
@@ -96,9 +97,11 @@ export function TaskForm({ task }: { task?: Task }) {
           />
         </div>
         {submitError && (
-          <p className="feedback feedback-error" role="alert">
-            Could not save the task. Try again.
-          </p>
+          <TaskNotice
+            message="Could not save the task. Please try again."
+            error
+            onDismiss={() => setSubmitError(false)}
+          />
         )}
         <div className="form-actions">
           <button

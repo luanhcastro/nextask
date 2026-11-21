@@ -21,7 +21,11 @@ export default async function Home({
 }) {
   const { task } = await searchParams;
   const notice =
-    task === 'created' ? 'Task created.' : task === 'updated' ? 'Task updated.' : undefined;
+    task === 'created'
+      ? 'Task created successfully.'
+      : task === 'updated'
+        ? 'Task updated successfully.'
+        : undefined;
 
   return (
     <main className="workspace">

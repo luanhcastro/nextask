@@ -44,7 +44,6 @@ body {
 
 .page-heading h1 {
   margin: 0;
-  translate: 7px 8px;
   font-size: 1.625rem;
   font-weight: 700;
   line-height: 1.25;
@@ -222,6 +221,49 @@ a.button:not(.button-primary):hover {
   color: var(--danger);
 }
 
+.task-notice {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  margin-bottom: 0.75rem;
+  padding: 0.25rem 0.5rem 0.25rem 0.75rem;
+  border: 1px solid #254849;
+  border-radius: 0.5rem;
+  background: #14282b;
+  color: #a6e3d5;
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+
+.task-notice-error {
+  border-color: #573343;
+  background: #301f29;
+  color: var(--danger);
+}
+
+.task-notice p {
+  display: flex;
+  align-items: baseline;
+  gap: 0.5rem;
+  margin: 0;
+}
+
+.task-notice .button {
+  min-width: 2rem;
+  min-height: 2rem;
+  flex-shrink: 0;
+  padding: 0;
+  border-color: transparent;
+  background: transparent;
+  font-size: 1.125rem;
+  line-height: 1;
+}
+
+.task-notice .button:hover {
+  background: rgb(255 255 255 / 8%);
+}
+
 .form-workspace {
   max-width: 36rem;
 }
@@ -278,6 +320,10 @@ a.button:not(.button-primary):hover {
 }
 
 .task-form .feedback {
+  margin: 0;
+}
+
+.task-form .task-notice {
   margin: 0;
 }
 

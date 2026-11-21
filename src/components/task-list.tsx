@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useState, useTransition } from 'react';
 
+import { TaskNotice } from '@/components/task-notice';
 import { trpc } from '@/trpc/client';
 import type { AppRouter } from '@/trpc/router';
 
@@ -16,33 +17,41 @@ export function TaskList({ tasks, notice }: { tasks: Task[]; notice?: string }) 
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
   const [deletingId, setDeletingId] = useState<string>();
-  const [feedback, setFeedback] = useState<{ message: string; error?: boolean }>();
+  const [feedback, setFeedback] = useState<{ message: string; error?: boolean } | null>();
+  const message = feedback === undefined ? notice : feedback?.message;
 
   function deleteTask(task: Task) {
     if (isPending) return;
 
     setDeletingId(task.id);
-    setFeedback(undefined);
+    setFeedback(null);
     startTransition(async () => {
       try {
         await trpc.task.delete.mutate({ id: task.id });
         // Re-read the first page on the server so the next task can fill the gap.
         router.refresh();
-        setFeedback({ message: 'Task deleted.' });
+        setFeedback({ message: 'Task deleted successfully.' });
       } catch {
-        setFeedback({ message: 'Could not delete the task. Try again.', error: true });
+        setFeedback({ message: 'Could not delete the task. Please try again.', error: true });
       }
     });
   }
 
   return (
     <>
-      <p className="feedback" role="status">
-        {isPending ? 'Deleting task…' : feedback?.error ? '' : (feedback?.message ?? notice)}
+      <p className="sr-only" role="status">
+        {isPending ? 'Deleting task…' : ''}
       </p>
-      <p className="feedback feedback-error" role="alert">
-        {!isPending && feedback?.error ? feedback.message : ''}
-      </p>
+      {!isPending && message && (
+        <TaskNotice
+          message={message}
+          error={feedback?.error}
+          onDismiss={() => {
+            setFeedback(null);
+            if (notice) window.history.replaceState(null, '', '/');
+          }}
+        />
+      )}
       {tasks.length === 0 ? (
         <div className="task-panel panel-message">
           <span className="empty-icon" aria-hidden="true" />
