@@ -24,6 +24,7 @@ const listInput = z
 
 type Task = z.infer<typeof taskFields> & { id: string; createdAt: string };
 
+// A Map keeps storage simple. Tasks are local to this server process and lost on restart.
 const tasks = new Map<string, Task>();
 
 function getTask(id: string) {
@@ -34,6 +35,8 @@ function getTask(id: string) {
   return task;
 }
 
+// ISO timestamps sort chronologically, and IDs break ties within a millisecond.
+// Both values are in the cursor so it still works if the boundary task is deleted.
 function taskCursor({ createdAt, id }: Task) {
   return `${createdAt}|${id}`;
 }
@@ -41,6 +44,7 @@ function taskCursor({ createdAt, id }: Task) {
 export const taskRouter = t.router({
   list: t.procedure.input(listInput).query(({ input }) => {
     const { limit = 10, cursor } = input ?? {};
+    // Read one extra task to tell whether another page exists.
     const page = [...tasks.values()]
       .filter((task) => cursor === undefined || taskCursor(task).localeCompare(cursor) < 0)
       .sort((a, b) => taskCursor(b).localeCompare(taskCursor(a)))
