@@ -50,6 +50,7 @@ export function TaskList({ tasks, notice }: { tasks: Task[]; notice?: string }) 
           error={feedback?.error}
           onDismiss={() => {
             setFeedback(null);
+            // Clear the save marker so a reload does not bring back the dismissed notice.
             if (notice) window.history.replaceState(null, '', '/');
           }}
         />

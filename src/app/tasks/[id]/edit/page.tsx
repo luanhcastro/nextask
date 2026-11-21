@@ -10,6 +10,7 @@ export default async function EditTaskPage({ params }: { params: Promise<{ id: s
   const { id } = await params;
 
   try {
+    // Load the task on the server so the form starts filled in and missing tasks can return a 404.
     const task = await appRouter.createCaller({}).task.getById({ id });
     return <TaskForm key={task.id} task={task} />;
   } catch (error) {
