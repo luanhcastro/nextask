@@ -224,16 +224,8 @@ a.button:not(.button-primary):hover {
   font-weight: 600;
 }
 
-.feedback:not(:empty) {
-  margin-bottom: 0.5rem;
-}
-
 .feedback-error {
   color: var(--danger);
-}
-
-.task-pagination .feedback {
-  margin: 0;
 }
 
 .task-notice {
@@ -332,10 +324,6 @@ a.button:not(.button-primary):hover {
 
 .form-field input[aria-invalid='true'] {
   border-color: var(--danger);
-}
-
-.task-form .feedback {
-  margin: 0;
 }
 
 .task-form .task-notice {

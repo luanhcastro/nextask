@@ -18,7 +18,7 @@ export function TaskList({ initialPage, notice }: { initialPage: TaskPage; notic
   const router = useRouter();
   const sentinel = useRef<HTMLDivElement>(null);
   const deletedIds = useRef(new Set<string>());
-  const [loaded, setLoaded] = useState<TaskPage>();
+  const [loaded, setLoaded] = useState<TaskPage & { fromCursor: string }>();
   const [request, setRequest] = useState<{ cursor: string; status: 'loading' | 'error' }>();
   const deleteDialog = useRef<HTMLDialogElement>(null);
   const [taskToDelete, setTaskToDelete] = useState<Task>();
@@ -26,8 +26,16 @@ export function TaskList({ initialPage, notice }: { initialPage: TaskPage; notic
   const [deletingId, setDeletingId] = useState<string>();
   const [feedback, setFeedback] = useState<{ message: string; error?: boolean } | null>();
   const message = feedback === undefined ? notice : feedback?.message;
+  const firstCursor = initialPage.nextCursor;
+
+  // A newer first-page boundary can leave a gap before the loaded tail.
+  if (loaded && (!firstCursor || firstCursor.localeCompare(loaded.fromCursor) > 0)) {
+    setLoaded(undefined);
+    setRequest(undefined);
+  }
+
   // Once pagination starts, an exhausted cursor must not fall back to the first page's cursor.
-  const cursor = loaded ? loaded.nextCursor : initialPage.nextCursor;
+  const cursor = loaded ? loaded.nextCursor : firstCursor;
   const pageStatus = request?.cursor === cursor ? request?.status : undefined;
   const pageFailed = pageStatus === 'error';
 
@@ -71,6 +79,7 @@ export function TaskList({ initialPage, notice }: { initialPage: TaskPage; notic
             return {
               items: [...(previous?.items ?? []), ...items.filter((task) => !seen.has(task.id))],
               nextCursor: page.nextCursor,
+              fromCursor: previous?.fromCursor ?? cursor,
             };
           });
           setRequest(undefined);
