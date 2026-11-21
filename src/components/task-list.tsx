@@ -26,6 +26,7 @@ export function TaskList({ initialPage, notice }: { initialPage: TaskPage; notic
   const [deletingId, setDeletingId] = useState<string>();
   const [feedback, setFeedback] = useState<{ message: string; error?: boolean } | null>();
   const message = feedback === undefined ? notice : feedback?.message;
+  // Once pagination starts, an exhausted cursor must not fall back to the first page's cursor.
   const cursor = loaded ? loaded.nextCursor : initialPage.nextCursor;
   const pageStatus = request?.cursor === cursor ? request?.status : undefined;
   const pageFailed = pageStatus === 'error';
@@ -42,6 +43,7 @@ export function TaskList({ initialPage, notice }: { initialPage: TaskPage; notic
     if (!target || !cursor || pageFailed) return;
 
     const controller = new AbortController();
+    // Guard queued observer callbacks before React has rendered the loading state.
     let requested = false;
     const observer = new IntersectionObserver(
       async (entries) => {
@@ -82,6 +84,7 @@ export function TaskList({ initialPage, notice }: { initialPage: TaskPage; notic
 
     return () => {
       observer.disconnect();
+      // A response from an old cursor or a page the user left must not append tasks.
       controller.abort();
     };
   }, [cursor, pageFailed]);
